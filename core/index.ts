@@ -12,8 +12,20 @@ abstract class Base {
 
     public abstract get size(): number;
     public abstract __getJSZip(dir: any): any;
+    public abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
+
+    protected getHierarchyString(char: string = "|", o?: HierarchyType, ___tab: string = "") {
+        let text = o?.text ?? 0, v: string = "";
+        if (text > 0 && this instanceof File) v = ` "${this.data.substring(0, text) + (text < this.data.length ? "..." : "")}"`;
+        return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
+    }
 }
 type DF = Direcory | File;
+
+type HierarchyType = {
+    size?: boolean,
+    text?: number
+}
 
 type DirecoryType = { data?: DF[] | Set<DF> } & BaseType;
 export class Direcory extends Base {
@@ -25,9 +37,9 @@ export class Direcory extends Base {
 
     public createFile(o: FileType) { let f = new File(o); return (this.data.add(f), f); }
     public createDir(o: DirecoryType) { let d = new Direcory(o); return (this.data.add(d), d); }
-    public getHierarchy(___tab: string = "") {
-        let str = `${___tab}+---${this.name}\n`;
-        this.data.forEach(f => str += "|" + f.getHierarchy(___tab + "   "));
+    public getHierarchy(o?: HierarchyType, ___tab: string = "") {
+        let str = this.getHierarchyString("+", o, ___tab);
+        this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));
         return str;
     }
     private __sort() { }
@@ -67,8 +79,8 @@ export class File extends Base {
         return this.data.length;
     }
 
-    public getHierarchy(tab: string = "") {
-        return `${tab}|---${this.name}\n`;
+    public getHierarchy(o?: HierarchyType, ___tab: string = "") {
+        return this.getHierarchyString("|", o, ___tab);//`${tab}|---${this.name}\n`;
     }
     public __getJSZip(dir: any) {
         return dir.file(this.name, this.data);

@@ -1,14 +1,13 @@
 {
   "name": "storage-file-system",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "./core/index.js",
   "types": "./core/index.d.ts",
   "type": "module",
   "scripts": {
-    "save_git": "git add . && git commit -m \"storage-file-system\" && git branch -M main && git push -u origin main",
-    "save_npm": "npm publish",
-    "save": "npm run save_git && npm run save_npm",
+    "git_remote": "git remote add origin https://github.com/Inadequado4192/Storage-File-System.git",
+    "save": "git add . && git commit -m \"storage-file-system\" && git branch -M main && git push -u origin main --force && npm publish",
     "test": "tsc && node ./test/index.js"
   },
   "author": "Inadequado",

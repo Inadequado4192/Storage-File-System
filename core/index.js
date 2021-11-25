@@ -4,6 +4,12 @@ class Base {
         this.name = o.name;
     }
     get format() { return this.name.search(/\./) > -1 ? this.name.match(/[^\.]+?$/g)[0] : null; }
+    getHierarchyString(char = "|", o, ___tab = "") {
+        let text = o?.text ?? 0, v = "";
+        if (text > 0 && this instanceof File)
+            v = ` "${this.data.substring(0, text) + (text < this.data.length ? "..." : "")}"`;
+        return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
+    }
 }
 export class Direcory extends Base {
     constructor(o) {
@@ -12,9 +18,9 @@ export class Direcory extends Base {
     }
     createFile(o) { let f = new File(o); return (this.data.add(f), f); }
     createDir(o) { let d = new Direcory(o); return (this.data.add(d), d); }
-    getHierarchy(___tab = "") {
-        let str = `${___tab}+---${this.name}\n`;
-        this.data.forEach(f => str += "|" + f.getHierarchy(___tab + "   "));
+    getHierarchy(o, ___tab = "") {
+        let str = this.getHierarchyString("+", o, ___tab);
+        this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));
         return str;
     }
     __sort() { }
@@ -51,8 +57,8 @@ export class File extends Base {
     get size() {
         return this.data.length;
     }
-    getHierarchy(tab = "") {
-        return `${tab}|---${this.name}\n`;
+    getHierarchy(o, ___tab = "") {
+        return this.getHierarchyString("|", o, ___tab);
     }
     __getJSZip(dir) {
         return dir.file(this.name, this.data);
