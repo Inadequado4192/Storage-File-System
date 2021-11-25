@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "target": "ESNext",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "strict": true,
+        "downlevelIteration": false,
+        "esModuleInterop": true,
+        "declaration": true,
+        "moduleResolution": "Node"
+    },
+    "exclude": [
+        "node_modules",
+        "**/node_modules/*"
+    ]
+}
