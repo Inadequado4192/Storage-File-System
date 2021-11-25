@@ -2,14 +2,18 @@ import JSZip from "jszip/dist/jszip.js";
 
 type BaseType = { name: string }
 abstract class Base {
+
     public name: string;
-    public abstract data: string | DF[] | Set<DF>;
+    public parent: Direcory | null = null;
     public constructor(o: BaseType) {
         this.name = o.name;
     }
 
     public get format() { return this.name.search(/\./) > -1 ? (<RegExpMatchArray>this.name.match(/[^\.]+?$/g))[0] : null }
 
+
+    public abstract type: "directory" | "file";
+    public abstract data: string | DF[] | Map<string, DF>;
     public abstract get size(): number;
     public abstract __getJSZip(dir: any): any;
     public abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
@@ -27,22 +31,33 @@ type HierarchyType = {
     text?: number
 }
 
-type DirecoryType = { data?: DF[] | Set<DF> } & BaseType;
+type DirecoryType = { data?: DF[] | Map<string, DF> } & BaseType;
 export class Direcory extends Base {
-    public data: Set<DF>;
+    public type: "directory" = "directory";
+    public data: Map<string, DF>;
+
     public constructor(o: DirecoryType) {
         super(o);
-        this.data = o.data instanceof Set ? o.data : new Set(o.data);
+        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
     }
 
-    public createFile(o: FileType) { let f = new File(o); return (this.data.add(f), f); }
-    public createDir(o: DirecoryType) { let d = new Direcory(o); return (this.data.add(d), d); }
+    public get size() {
+        let s = 0;
+        this.data.forEach(f => s += f.size);
+        return s;
+    }
+
+    public get(name: string) { return this.data.get(name) ?? null; }
+
+    private base<T extends DF>(_: T) { return (_.parent = this, this.__sort(), _) }
+    public createFile(o: FileType) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
+    public createDir(o: DirecoryType) { let d = new Direcory(o); return (this.data.set(d.name, d), this.base(d)); }
+
     public getHierarchy(o?: HierarchyType, ___tab: string = "") {
         let str = this.getHierarchyString("+", o, ___tab);
         this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));
         return str;
     }
-    private __sort() { }
     public download() {
         const zip = new JSZip();
 
@@ -60,15 +75,15 @@ export class Direcory extends Base {
         return thisDir;
     }
 
-    public get size() {
-        let s = 0;
-        this.data.forEach(f => s += f.size);
-        return s;
+
+    private __sort() {
+        this.data = new Map(Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1));
     }
 }
 
 type FileType = { data?: string } & BaseType;
 export class File extends Base {
+    public type: "file" = "file";
     public data: string;
     public constructor(o: FileType) {
         super(o);
@@ -86,14 +101,3 @@ export class File extends Base {
         return dir.file(this.name, this.data);
     }
 }
-
-
-
-// function download(text: string, name: string, type: "text/plain") {
-//     let a = document.createElement("a");
-//     // var file = new Blob([text], { type: type });
-//     // a.href = URL.createObjectURL(file);
-//     a.href = `data:text/plain;base64,${btoa(text)}`
-//     a.download = name;
-//     a.click();
-// }

@@ -1,6 +1,7 @@
 import JSZip from "jszip/dist/jszip.js";
 class Base {
     constructor(o) {
+        this.parent = null;
         this.name = o.name;
     }
     get format() { return this.name.search(/\./) > -1 ? this.name.match(/[^\.]+?$/g)[0] : null; }
@@ -14,16 +15,23 @@ class Base {
 export class Direcory extends Base {
     constructor(o) {
         super(o);
-        this.data = o.data instanceof Set ? o.data : new Set(o.data);
+        this.type = "directory";
+        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
     }
-    createFile(o) { let f = new File(o); return (this.data.add(f), f); }
-    createDir(o) { let d = new Direcory(o); return (this.data.add(d), d); }
+    get size() {
+        let s = 0;
+        this.data.forEach(f => s += f.size);
+        return s;
+    }
+    get(name) { return this.data.get(name) ?? null; }
+    base(_) { return (_.parent = this, this.__sort(), _); }
+    createFile(o) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
+    createDir(o) { let d = new Direcory(o); return (this.data.set(d.name, d), this.base(d)); }
     getHierarchy(o, ___tab = "") {
         let str = this.getHierarchyString("+", o, ___tab);
         this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));
         return str;
     }
-    __sort() { }
     download() {
         const zip = new JSZip();
         const dir = zip.folder(this.name);
@@ -43,15 +51,14 @@ export class Direcory extends Base {
         this.data.forEach(f => f.__getJSZip(thisDir));
         return thisDir;
     }
-    get size() {
-        let s = 0;
-        this.data.forEach(f => s += f.size);
-        return s;
+    __sort() {
+        this.data = new Map(Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1));
     }
 }
 export class File extends Base {
     constructor(o) {
         super(o);
+        this.type = "file";
         this.data = o.data ?? "";
     }
     get size() {
