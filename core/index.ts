@@ -3,7 +3,14 @@ import JSZip from "jszip/dist/jszip.js";
 type BaseType = { name: string }
 abstract class Base {
 
-    public name: string;
+    private _name!: string;
+    public get name() { return this._name; }
+    public set name(v) {
+        let m = v.match(/[^/?*:;{}\\]+/g);
+        if (!m || m.length != 1) throw Error("Incorrect file name!")
+        else this._name = v;
+    }
+
     public parent: Direcory | null = null;
     public constructor(o: BaseType) {
         this.name = o.name;
