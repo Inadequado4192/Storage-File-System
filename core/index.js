@@ -19,12 +19,17 @@ class Base {
             v = ` "${this.data.substring(0, text) + (text < this.data.length ? "..." : "")}"`;
         return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
     }
+    delete() {
+        this.parent?.data.delete(this.name);
+        this.parent = null;
+    }
 }
 export class Direcory extends Base {
     constructor(o) {
         super(o);
         this.type = "directory";
         this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
+        Array.from(this.data).forEach(f => f[1].parent = this);
         this.__sort();
     }
     get size() {
@@ -36,6 +41,7 @@ export class Direcory extends Base {
     base(_) { return (_.parent = this, this.__sort(), _); }
     createFile(o) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
     createDir(o) { let d = new Direcory(o); return (this.data.set(d.name, d), this.base(d)); }
+    add(o) { return this.data.set(o.name, o), this.base(o); }
     getHierarchy(o, ___tab = "") {
         let str = this.getHierarchyString("+", o, ___tab);
         this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));
@@ -60,6 +66,12 @@ export class Direcory extends Base {
         this.data.forEach(f => f.__getJSZip(thisDir));
         return thisDir;
     }
+    move(dir) {
+        if (this == dir)
+            throw Error("Attempting to move the directory to itself.");
+        this.delete();
+        dir.add(this);
+    }
     __sort() {
         this.data = new Map(Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1));
     }
@@ -78,5 +90,9 @@ export class File extends Base {
     }
     __getJSZip(dir) {
         return dir.file(this.name, this.data);
+    }
+    move(dir) {
+        this.delete();
+        dir.add(this);
     }
 }

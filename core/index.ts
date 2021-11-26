@@ -30,6 +30,12 @@ abstract class Base {
         if (text > 0 && this instanceof File) v = ` "${this.data.substring(0, text) + (text < this.data.length ? "..." : "")}"`;
         return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
     }
+    public delete() {
+        this.parent?.data.delete(this.name);
+        this.parent = null;
+    }
+
+    public abstract move(dir: Direcory): void;
 }
 type DF = Direcory | File;
 
@@ -45,7 +51,8 @@ export class Direcory extends Base {
 
     public constructor(o: DirecoryType) {
         super(o);
-        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => (f.parent = this, [f.name, f])));
+        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
+        Array.from(this.data).forEach(f => f[1].parent = this);
         this.__sort()
     }
 
@@ -60,6 +67,8 @@ export class Direcory extends Base {
     private base<T extends DF>(_: T) { return (_.parent = this, this.__sort(), _) }
     public createFile(o: FileType) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
     public createDir(o: DirecoryType) { let d = new Direcory(o); return (this.data.set(d.name, d), this.base(d)); }
+
+    public add(o: DF) { return this.data.set(o.name, o), this.base(o); } 
 
     public getHierarchy(o?: HierarchyType, ___tab: string = "") {
         let str = this.getHierarchyString("+", o, ___tab);
@@ -83,9 +92,17 @@ export class Direcory extends Base {
         return thisDir;
     }
 
+    public move(dir: Direcory) {
+        if (this == dir) throw Error("Attempting to move the directory to itself.");
+        this.delete();
+        dir.add(this);
+    }
 
     private __sort() {
-        this.data = new Map(Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1));
+        this.data = new Map(
+            Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1)
+                // .map(f => (f[1].data, f))
+        );
     }
 }
 
@@ -107,5 +124,10 @@ export class File extends Base {
     }
     public __getJSZip(dir: any) {
         return dir.file(this.name, this.data);
+    }
+
+    public move(dir: Direcory) {
+        this.delete();
+        dir.add(this);
     }
 }
