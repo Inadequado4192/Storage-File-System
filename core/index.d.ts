@@ -2,7 +2,9 @@ declare type BaseType = {
     name: string;
 };
 declare abstract class Base {
-    name: string;
+    private _name;
+    get name(): string;
+    set name(v: string);
     parent: Direcory | null;
     constructor(o: BaseType);
     get format(): string | null;

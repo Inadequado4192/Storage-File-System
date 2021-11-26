@@ -6,8 +6,8 @@ abstract class Base {
     private _name!: string;
     public get name() { return this._name; }
     public set name(v) {
-        let m = v.match(/[^/?*:;{}\\]+/g);
-        if (!m || m.length != 1) throw Error("Incorrect file name!")
+        let m = v.match(/^[^/?*:;{}\\]+$/g);
+        if (!m || m.length != 1) throw Error(`The file name "${v}" is not allowed!`)
         else this._name = v;
     }
 

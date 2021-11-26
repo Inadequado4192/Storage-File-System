@@ -7,8 +7,8 @@ mainDir.createFile({ name: "testName", data: "Hello" });
 const assets = mainDir.createDir({ name: "assets" });
 
 let i1 = assets.createFile({ name: "image1.png" });
-let i2 = assets.createFile({ name: "" });
-let i3 = assets.createFile({ name: "" });
+let i2 = assets.createFile({ name: "345.p" });
+let i3 = assets.createFile({ name: "i3.png" });
 
 i1.data = "344";
 i2.data = "3432133424567";

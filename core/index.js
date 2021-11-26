@@ -4,6 +4,14 @@ class Base {
         this.parent = null;
         this.name = o.name;
     }
+    get name() { return this._name; }
+    set name(v) {
+        let m = v.match(/^[^/?*:;{}\\]+$/g);
+        if (!m || m.length != 1)
+            throw Error(`The file name "${v}" is not allowed!`);
+        else
+            this._name = v;
+    }
     get format() { return this.name.search(/\./) > -1 ? this.name.match(/[^\.]+?$/g)?.[0] ?? null : null; }
     getHierarchyString(char = "|", o, ___tab = "") {
         let text = o?.text ?? 0, v = "";
