@@ -8,13 +8,13 @@ const assets = mainDir.createDir({ name: "assets" });
 
 let i1 = assets.createFile({ name: "image1.png" });
 let i2 = assets.createFile({ name: "image1.png" });
-let i3 = assets.createFile({ name: "image3.png" });
+let i3 = assets.createFile({ name: "image3." });
 
 i1.data = "344";
 i2.data = "3432133424567";
 i3.data = "12345";
 
-console.log(mainDir);
+console.log(i3.format);
 console.log(mainDir.getHierarchy({ size: true, text: 5 }));
 
 mainDir.download();

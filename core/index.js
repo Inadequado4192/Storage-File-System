@@ -4,7 +4,7 @@ class Base {
         this.parent = null;
         this.name = o.name;
     }
-    get format() { return this.name.search(/\./) > -1 ? this.name.match(/[^\.]+?$/g)[0] : null; }
+    get format() { return this.name.search(/\./) > -1 ? this.name.match(/[^\.]+?$/g)?.[0] ?? null : null; }
     getHierarchyString(char = "|", o, ___tab = "") {
         let text = o?.text ?? 0, v = "";
         if (text > 0 && this instanceof File)
@@ -17,6 +17,7 @@ export class Direcory extends Base {
         super(o);
         this.type = "directory";
         this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
+        this.__sort();
     }
     get size() {
         let s = 0;

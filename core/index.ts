@@ -9,7 +9,7 @@ abstract class Base {
         this.name = o.name;
     }
 
-    public get format() { return this.name.search(/\./) > -1 ? (<RegExpMatchArray>this.name.match(/[^\.]+?$/g))[0] : null }
+    public get format() { return this.name.search(/\./) > -1 ? (<RegExpMatchArray>this.name.match(/[^\.]+?$/g))?.[0] ?? null : null }
 
 
     public abstract type: "directory" | "file";
