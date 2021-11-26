@@ -8,5 +8,6 @@ let i3 = assets.createFile({ name: "i3.png" });
 i1.data = "344";
 i2.data = "3432133424567";
 i3.data = "12345";
+console.log(mainDir);
 console.log(mainDir.getHierarchy({ size: true, text: 5 }));
 mainDir.download();
