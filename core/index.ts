@@ -39,6 +39,7 @@ export class Direcory extends Base {
     public constructor(o: DirecoryType) {
         super(o);
         this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
+        this.__sort()
     }
 
     public get size() {
