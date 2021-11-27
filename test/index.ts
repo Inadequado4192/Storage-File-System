@@ -1,13 +1,35 @@
 // import JSZip from "../node_modules/jszip/index/dist";
-import { Direcory, File } from "../core/index.js";
+import { Directory, File } from "../core/index.js";
 
-let [f1, f2] = [new Direcory({ name: "Dir" }), new File({ name: "script.js" })];
-
-let mainDir = new Direcory({
-    name: "dirName",
-    data: [f1, f2]
+let mainDir = new Directory({
+    name: "Project",
+    data: [
+        new Directory({
+            name: "Assets",
+            data: [
+                new Directory({
+                    name: "Scripts",
+                    data: [
+                        new File({ name: "script1.js" }),
+                        new File({ name: "script2.js" })
+                    ]
+                }),
+                new Directory({
+                    name: "Sprites",
+                    data: [
+                        new File({ name: "sprite1.png" }),
+                        new File({ name: "sprite2.png" })
+                    ]
+                }),
+            ]
+        }),
+        new File({ name: "README.md" }),
+    ]
 });
 
+let assets = Array.from(mainDir.data)[0][1] as Directory;
+let scripts = Array.from(assets.data)[0][1] as Directory;
+// assets.move(scripts);
 
 console.log(mainDir.getHierarchy({ size: true, text: 5 }));
 

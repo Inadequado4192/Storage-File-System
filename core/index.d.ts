@@ -5,7 +5,7 @@ declare abstract class Base {
     private _name;
     get name(): string;
     set name(v: string);
-    parent: Direcory | null;
+    parent: Directory | null;
     constructor(o: BaseType);
     get format(): string | null;
     abstract type: "directory" | "file";
@@ -15,9 +15,10 @@ declare abstract class Base {
     abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
     protected getHierarchyString(char?: string, o?: HierarchyType, ___tab?: string): string;
     delete(): void;
-    abstract move(dir: Direcory): void;
+    findParentDir(a: string | Directory): Directory | null;
+    abstract move(dir: Directory): void;
 }
-declare type DF = Direcory | File;
+declare type DF = Directory | File;
 declare type HierarchyType = {
     size?: boolean;
     text?: number;
@@ -25,7 +26,7 @@ declare type HierarchyType = {
 declare type DirecoryType = {
     data?: DF[] | Map<string, DF>;
 } & BaseType;
-export declare class Direcory extends Base {
+export declare class Directory extends Base {
     type: "directory";
     data: Map<string, DF>;
     constructor(o: DirecoryType);
@@ -33,12 +34,12 @@ export declare class Direcory extends Base {
     get(name: string): DF | null;
     private base;
     createFile(o: FileType): File;
-    createDir(o: DirecoryType): Direcory;
+    createDir(o: DirecoryType): Directory;
     add(o: DF): DF;
     getHierarchy(o?: HierarchyType, ___tab?: string): string;
     download(): void;
     __getJSZip(dir: any): any;
-    move(dir: Direcory): void;
+    move(dir: Directory): void;
     private __sort;
 }
 declare type FileType = {
@@ -51,6 +52,6 @@ export declare class File extends Base {
     get size(): number;
     getHierarchy(o?: HierarchyType, ___tab?: string): string;
     __getJSZip(dir: any): any;
-    move(dir: Direcory): void;
+    move(dir: Directory): void;
 }
 export {};

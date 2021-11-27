@@ -6,12 +6,11 @@ abstract class Base {
     private _name!: string;
     public get name() { return this._name; }
     public set name(v) {
-        let m = v.match(/^[^/?*:;{}\\]+$/g);
-        if (!m || m.length != 1) throw Error(`The file name "${v}" is not allowed!`)
+        if (v.match(/^[\\/:*?"<>|]+$/g)) throw Error(`The file name "${v}" is not allowed!`)
         else this._name = v;
     }
 
-    public parent: Direcory | null = null;
+    public parent: Directory | null = null;
     public constructor(o: BaseType) {
         this.name = o.name;
     }
@@ -34,10 +33,16 @@ abstract class Base {
         this.parent?.data.delete(this.name);
         this.parent = null;
     }
+    public findParentDir(a: string | Directory): Directory | null {
+        if (typeof a == "string" ? this.parent?.name == a : this.parent == a) return this.parent;
+        else return this.parent?.findParentDir(a) ?? null;
+    }
 
-    public abstract move(dir: Direcory): void;
+
+    public abstract move(dir: Directory): void;
+
 }
-type DF = Direcory | File;
+type DF = Directory | File;
 
 type HierarchyType = {
     size?: boolean,
@@ -45,7 +50,7 @@ type HierarchyType = {
 }
 
 type DirecoryType = { data?: DF[] | Map<string, DF> } & BaseType;
-export class Direcory extends Base {
+export class Directory extends Base {
     public type: "directory" = "directory";
     public data: Map<string, DF>;
 
@@ -66,9 +71,9 @@ export class Direcory extends Base {
 
     private base<T extends DF>(_: T) { return (_.parent = this, this.__sort(), _) }
     public createFile(o: FileType) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
-    public createDir(o: DirecoryType) { let d = new Direcory(o); return (this.data.set(d.name, d), this.base(d)); }
+    public createDir(o: DirecoryType) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
 
-    public add(o: DF) { return this.data.set(o.name, o), this.base(o); } 
+    public add(o: DF) { return this.data.set(o.name, o), this.base(o); }
 
     public getHierarchy(o?: HierarchyType, ___tab: string = "") {
         let str = this.getHierarchyString("+", o, ___tab);
@@ -92,8 +97,8 @@ export class Direcory extends Base {
         return thisDir;
     }
 
-    public move(dir: Direcory) {
-        if (this == dir) throw Error("Attempting to move the directory to itself.");
+    public move(dir: Directory) {
+        if (this == dir || dir.findParentDir(this)) throw Error("Attempting to move the directory to itself."); 
         this.delete();
         dir.add(this);
     }
@@ -101,7 +106,7 @@ export class Direcory extends Base {
     private __sort() {
         this.data = new Map(
             Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1)
-                // .map(f => (f[1].data, f))
+            // .map(f => (f[1].data, f))
         );
     }
 }
@@ -126,7 +131,7 @@ export class File extends Base {
         return dir.file(this.name, this.data);
     }
 
-    public move(dir: Direcory) {
+    public move(dir: Directory) {
         this.delete();
         dir.add(this);
     }

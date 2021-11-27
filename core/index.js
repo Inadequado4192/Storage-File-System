@@ -6,8 +6,7 @@ class Base {
     }
     get name() { return this._name; }
     set name(v) {
-        let m = v.match(/^[^/?*:;{}\\]+$/g);
-        if (!m || m.length != 1)
+        if (v.match(/^[\\/:*?"<>|]+$/g))
             throw Error(`The file name "${v}" is not allowed!`);
         else
             this._name = v;
@@ -23,8 +22,14 @@ class Base {
         this.parent?.data.delete(this.name);
         this.parent = null;
     }
+    findParentDir(a) {
+        if (typeof a == "string" ? this.parent?.name == a : this.parent == a)
+            return this.parent;
+        else
+            return this.parent?.findParentDir(a) ?? null;
+    }
 }
-export class Direcory extends Base {
+export class Directory extends Base {
     constructor(o) {
         super(o);
         this.type = "directory";
@@ -40,7 +45,7 @@ export class Direcory extends Base {
     get(name) { return this.data.get(name) ?? null; }
     base(_) { return (_.parent = this, this.__sort(), _); }
     createFile(o) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
-    createDir(o) { let d = new Direcory(o); return (this.data.set(d.name, d), this.base(d)); }
+    createDir(o) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
     add(o) { return this.data.set(o.name, o), this.base(o); }
     getHierarchy(o, ___tab = "") {
         let str = this.getHierarchyString("+", o, ___tab);
@@ -67,7 +72,7 @@ export class Direcory extends Base {
         return thisDir;
     }
     move(dir) {
-        if (this == dir)
+        if (this == dir || dir.findParentDir(this))
             throw Error("Attempting to move the directory to itself.");
         this.delete();
         dir.add(this);
