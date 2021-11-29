@@ -1,6 +1,6 @@
 {
   "name": "storage-file-system",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "",
   "main": "./core/index.js",
   "types": "./core/index.d.ts",
