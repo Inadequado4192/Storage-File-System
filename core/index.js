@@ -2,14 +2,7 @@ import JSZip from "jszip/dist/jszip.js";
 class Base {
     constructor(o) {
         this.parent = null;
-        this.name = o.name;
-    }
-    get name() { return this._name; }
-    set name(v) {
-        if (v.match(/^[\\/:*?"<>|]+$/g))
-            throw Error(`The file name "${v}" is not allowed!`);
-        else
-            this._name = v;
+        this.rename(o.name);
     }
     get format() { return this.name.search(/\./) > -1 ? this.name.match(/[^\.]+?$/g)?.[0] ?? null : null; }
     getHierarchyString(char = "|", o, ___tab = "") {
@@ -19,7 +12,7 @@ class Base {
         return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
     }
     delete() {
-        this.parent?.data.delete(this);
+        this.parent?.data.delete(this.name);
         this.parent = null;
     }
     findParentDir(a) {
@@ -28,13 +21,22 @@ class Base {
         else
             return this.parent?.findParentDir(a) ?? null;
     }
+    rename(newName) {
+        if (newName.match(/^[\\/:*?"<>|]+$/g))
+            throw Error(`The file name "${newName}" is not allowed!`);
+        let oldName = this.name;
+        this.name = newName;
+        this.parent?.data.delete(oldName);
+        this.parent?.data.set(newName, this);
+        this.parent?.__sort();
+    }
 }
 export class Directory extends Base {
     constructor(o) {
         super(o);
         this.type = "directory";
-        this.data = o.data instanceof Set ? o.data : new Set(o.data);
-        Array.from(this.data).forEach(f => f.parent = this);
+        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
+        Array.from(this.data).forEach(f => f[1].parent = this);
         this.__sort();
     }
     get size() {
@@ -42,11 +44,15 @@ export class Directory extends Base {
         this.data.forEach(f => s += f.size);
         return s;
     }
-    get(name) { return Array.from(this.data).find(f => f.name === name) ?? null; }
-    base(_) { return (_.parent = this, this.__sort(), _); }
-    createFile(o) { let f = new File(o); return (this.data.add(f), this.base(f)); }
-    createDir(o) { let d = new Directory(o); return (this.data.add(d), this.base(d)); }
-    add(o) { return this.data.add(o), this.base(o); }
+    get(name) { return Array.from(this.data).find(f => f[1].name === name) ?? null; }
+    base(_) {
+        if (this.data.has(_.name))
+            throw Error("A file with this name already exists");
+        return (_.parent = this, this.__sort(), _);
+    }
+    createFile(o) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
+    createDir(o) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
+    add(o) { return this.data.set(o.name, o), this.base(o); }
     getHierarchy(o, ___tab = "") {
         let str = this.getHierarchyString("+", o, ___tab);
         this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));
@@ -78,7 +84,7 @@ export class Directory extends Base {
         dir.add(this);
     }
     __sort() {
-        this.data = new Set(Array.from(this.data).sort((a, b) => a.type == "directory" ? -1 : 1));
+        this.data = new Map(Array.from(this.data).sort().sort((a, b) => a[1].type == "directory" ? -1 : 1));
     }
 }
 export class File extends Base {

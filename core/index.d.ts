@@ -2,20 +2,19 @@ declare type BaseType = {
     name: string;
 };
 declare abstract class Base {
-    private _name;
-    get name(): string;
-    set name(v: string);
+    readonly name: string;
     parent: Directory | null;
     constructor(o: BaseType);
     get format(): string | null;
     abstract type: "directory" | "file";
-    abstract data: string | Set<DF>;
+    abstract data: string | Map<string, DF>;
     abstract get size(): number;
     abstract __getJSZip(dir: any): any;
     abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
     protected getHierarchyString(char?: string, o?: HierarchyType, ___tab?: string): string;
     delete(): void;
     findParentDir(a: string | Directory): Directory | null;
+    rename(newName: string): void;
     abstract move(dir: Directory): void;
 }
 declare type DF = Directory | File;
@@ -24,14 +23,14 @@ declare type HierarchyType = {
     text?: number;
 };
 declare type DirecoryType = {
-    data?: DF[] | Set<DF>;
+    data?: DF[] | Map<string, DF>;
 } & BaseType;
 export declare class Directory extends Base {
     type: "directory";
-    data: Set<DF>;
+    data: Map<string, DF>;
     constructor(o: DirecoryType);
     get size(): number;
-    get(name: string): DF | null;
+    get(name: string): [string, DF] | null;
     private base;
     createFile(o: FileType): File;
     createDir(o: DirecoryType): Directory;
@@ -40,7 +39,7 @@ export declare class Directory extends Base {
     download(): void;
     __getJSZip(dir: any): any;
     move(dir: Directory): void;
-    private __sort;
+    __sort(): void;
 }
 declare type FileType = {
     data?: string;

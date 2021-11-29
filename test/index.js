@@ -8,8 +8,8 @@ let mainDir = new Directory({
                 new Directory({
                     name: "Scripts",
                     data: [
-                        new File({ name: "script1.js" }),
-                        new File({ name: "script2.js" })
+                        new File({ name: "script2.js" }),
+                        new File({ name: "script1.js" })
                     ]
                 }),
                 new Directory({
@@ -24,9 +24,9 @@ let mainDir = new Directory({
         new File({ name: "README.md" }),
     ]
 });
-let assets = Array.from(mainDir.data)[0];
-let scripts = Array.from(assets.data)[0];
-assets.name = "NN";
-assets.delete();
+let assets = Array.from(mainDir.data)[0][1];
+let scripts = Array.from(assets.data)[0][1];
+assets.rename("NN");
+console.log(mainDir);
 console.log(mainDir.getHierarchy({ size: true, text: 5 }));
 mainDir.download();

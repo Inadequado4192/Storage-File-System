@@ -2,23 +2,18 @@ import JSZip from "jszip/dist/jszip.js";
 
 type BaseType = { name: string }
 abstract class Base {
-    private _name!: string;
-    public get name() { return this._name; }
-    public set name(v) {
-        if (v.match(/^[\\/:*?"<>|]+$/g)) throw Error(`The file name "${v}" is not allowed!`)
-        else this._name = v;
-    }
+    public readonly name!: string;
 
     public parent: Directory | null = null;
     public constructor(o: BaseType) {
-        this.name = o.name;
+        this.rename(o.name)
     }
 
     public get format() { return this.name.search(/\./) > -1 ? (<RegExpMatchArray>this.name.match(/[^\.]+?$/g))?.[0] ?? null : null }
 
 
     public abstract type: "directory" | "file";
-    public abstract data: string | Set<DF>;
+    public abstract data: string | Map<string, DF>;
     public abstract get size(): number;
     public abstract __getJSZip(dir: any): any;
     public abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
@@ -29,12 +24,20 @@ abstract class Base {
         return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
     }
     public delete() {
-        this.parent?.data.delete(this as DF);
+        this.parent?.data.delete(this.name);
         this.parent = null;
     }
     public findParentDir(a: string | Directory): Directory | null {
         if (typeof a == "string" ? this.parent?.name == a : this.parent == a) return this.parent;
         else return this.parent?.findParentDir(a) ?? null;
+    }
+    public rename(newName: string) {
+        if (newName.match(/^[\\/:*?"<>|]+$/g)) throw Error(`The file name "${newName}" is not allowed!`)
+        let oldName = this.name;
+        (<any>this).name = newName;
+        this.parent?.data.delete(oldName);
+        this.parent?.data.set(newName, this as DF);
+        this.parent?.__sort();
     }
 
 
@@ -48,15 +51,15 @@ type HierarchyType = {
     text?: number
 }
 
-type DirecoryType = { data?: DF[] | Set<DF> } & BaseType;
+type DirecoryType = { data?: DF[] | Map<string, DF> } & BaseType;
 export class Directory extends Base {
     public type = "directory" as const;
-    public data: Set<DF>;
+    public data: Map<string, DF>;
 
     public constructor(o: DirecoryType) {
         super(o);
-        this.data = o.data instanceof Set ? o.data : new Set(o.data);//new Map(o.data?.map(f => [f.name, f]));
-        Array.from(this.data).forEach(f => f.parent = this);
+        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
+        Array.from(this.data).forEach(f => f[1].parent = this);
         this.__sort();
     }
 
@@ -66,13 +69,16 @@ export class Directory extends Base {
         return s;
     }
 
-    public get(name: string) { return Array.from(this.data).find(f => f.name === name) ?? null; }
+    public get(name: string) { return Array.from(this.data).find(f => f[1].name === name) ?? null; }
 
-    private base<T extends DF>(_: T) { return (_.parent = this, this.__sort(), _) }
-    public createFile(o: FileType) { let f = new File(o); return (this.data.add(f), this.base(f)); }
-    public createDir(o: DirecoryType) { let d = new Directory(o); return (this.data.add(d), this.base(d)); }
+    private base<T extends DF>(_: T) {
+        if (this.data.has(_.name)) throw Error(`A file named "${_.name}" already exists`);
+        return (_.parent = this, this.__sort(), _)
+    }
+    public createFile(o: FileType) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
+    public createDir(o: DirecoryType) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
 
-    public add(o: DF) { return this.data.add(o), this.base(o); }
+    public add(o: DF) { return this.data.set(o.name, o), this.base(o); }
 
     public getHierarchy(o?: HierarchyType, ___tab: string = "") {
         let str = this.getHierarchyString("+", o, ___tab);
@@ -97,14 +103,14 @@ export class Directory extends Base {
     }
 
     public move(dir: Directory) {
-        if (this == dir || dir.findParentDir(this)) throw Error("Attempting to move the directory to itself."); 
+        if (this == dir || dir.findParentDir(this)) throw Error("Attempting to move the directory to itself.");
         this.delete();
         dir.add(this);
     }
 
-    private __sort() {
-        this.data = new Set(
-            Array.from(this.data).sort((a, b) => a.type == "directory" ? -1 : 1)
+    public __sort() {
+        this.data = new Map(
+            Array.from(this.data).sort().sort((a, b) => a[1].type == "directory" ? -1 : 1)
         );
     }
 }
