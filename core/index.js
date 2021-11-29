@@ -94,7 +94,7 @@ export class Directory extends Base {
         dir.add(this);
     }
     __sort() {
-        this.data = new Map(Array.from(this.data).sort().sort((a, b) => a[1].type == "directory" ? -1 : 1));
+        this.data = new Map(Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1));
     }
 }
 export class File extends Base {
