@@ -32,8 +32,8 @@ let scripts = Array.from(assets.data)[0][1] as Directory;
 // assets.move(scripts);
 
 assets.rename("NN");
-let nf = new File({ name: "m" });
-mainDir.add(nf);
+// let nf = new File({ name: "m" });
+// mainDir.add(nf);
 // assets.delete();
 
 console.log(mainDir);
