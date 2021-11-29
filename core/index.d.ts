@@ -9,7 +9,7 @@ declare abstract class Base {
     constructor(o: BaseType);
     get format(): string | null;
     abstract type: "directory" | "file";
-    abstract data: string | DF[] | Map<string, DF>;
+    abstract data: string | Set<DF>;
     abstract get size(): number;
     abstract __getJSZip(dir: any): any;
     abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
@@ -24,11 +24,11 @@ declare type HierarchyType = {
     text?: number;
 };
 declare type DirecoryType = {
-    data?: DF[] | Map<string, DF>;
+    data?: DF[] | Set<DF>;
 } & BaseType;
 export declare class Directory extends Base {
     type: "directory";
-    data: Map<string, DF>;
+    data: Set<DF>;
     constructor(o: DirecoryType);
     get size(): number;
     get(name: string): DF | null;

@@ -19,7 +19,7 @@ class Base {
         return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
     }
     delete() {
-        this.parent?.data.delete(this.name);
+        this.parent?.data.delete(this);
         this.parent = null;
     }
     findParentDir(a) {
@@ -33,8 +33,8 @@ export class Directory extends Base {
     constructor(o) {
         super(o);
         this.type = "directory";
-        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
-        Array.from(this.data).forEach(f => f[1].parent = this);
+        this.data = o.data instanceof Set ? o.data : new Set(o.data);
+        Array.from(this.data).forEach(f => f.parent = this);
         this.__sort();
     }
     get size() {
@@ -42,11 +42,11 @@ export class Directory extends Base {
         this.data.forEach(f => s += f.size);
         return s;
     }
-    get(name) { return this.data.get(name) ?? null; }
+    get(name) { return Array.from(this.data).find(f => f.name === name) ?? null; }
     base(_) { return (_.parent = this, this.__sort(), _); }
-    createFile(o) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
-    createDir(o) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
-    add(o) { return this.data.set(o.name, o), this.base(o); }
+    createFile(o) { let f = new File(o); return (this.data.add(f), this.base(f)); }
+    createDir(o) { let d = new Directory(o); return (this.data.add(d), this.base(d)); }
+    add(o) { return this.data.add(o), this.base(o); }
     getHierarchy(o, ___tab = "") {
         let str = this.getHierarchyString("+", o, ___tab);
         this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));
@@ -78,7 +78,7 @@ export class Directory extends Base {
         dir.add(this);
     }
     __sort() {
-        this.data = new Map(Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1));
+        this.data = new Set(Array.from(this.data).sort((a, b) => a.type == "directory" ? -1 : 1));
     }
 }
 export class File extends Base {

@@ -27,9 +27,12 @@ let mainDir = new Directory({
     ]
 });
 
-let assets = Array.from(mainDir.data)[0][1] as Directory;
-let scripts = Array.from(assets.data)[0][1] as Directory;
+let assets = Array.from(mainDir.data)[0] as Directory;
+let scripts = Array.from(assets.data)[0] as Directory;
 // assets.move(scripts);
+
+assets.name = "NN";
+assets.delete();
 
 console.log(mainDir.getHierarchy({ size: true, text: 5 }));
 

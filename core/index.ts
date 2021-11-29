@@ -2,7 +2,6 @@ import JSZip from "jszip/dist/jszip.js";
 
 type BaseType = { name: string }
 abstract class Base {
-
     private _name!: string;
     public get name() { return this._name; }
     public set name(v) {
@@ -19,7 +18,7 @@ abstract class Base {
 
 
     public abstract type: "directory" | "file";
-    public abstract data: string | DF[] | Map<string, DF>;
+    public abstract data: string | Set<DF>;
     public abstract get size(): number;
     public abstract __getJSZip(dir: any): any;
     public abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
@@ -30,7 +29,7 @@ abstract class Base {
         return `${___tab}${char}---${this.name}${o?.size ? ` (${this.size} bytes)` : ""}${v}\n`;
     }
     public delete() {
-        this.parent?.data.delete(this.name);
+        this.parent?.data.delete(this as DF);
         this.parent = null;
     }
     public findParentDir(a: string | Directory): Directory | null {
@@ -49,16 +48,16 @@ type HierarchyType = {
     text?: number
 }
 
-type DirecoryType = { data?: DF[] | Map<string, DF> } & BaseType;
+type DirecoryType = { data?: DF[] | Set<DF> } & BaseType;
 export class Directory extends Base {
-    public type: "directory" = "directory";
-    public data: Map<string, DF>;
+    public type = "directory" as const;
+    public data: Set<DF>;
 
     public constructor(o: DirecoryType) {
         super(o);
-        this.data = o.data instanceof Map ? o.data : new Map(o.data?.map(f => [f.name, f]));
-        Array.from(this.data).forEach(f => f[1].parent = this);
-        this.__sort()
+        this.data = o.data instanceof Set ? o.data : new Set(o.data);//new Map(o.data?.map(f => [f.name, f]));
+        Array.from(this.data).forEach(f => f.parent = this);
+        this.__sort();
     }
 
     public get size() {
@@ -67,13 +66,13 @@ export class Directory extends Base {
         return s;
     }
 
-    public get(name: string) { return this.data.get(name) ?? null; }
+    public get(name: string) { return Array.from(this.data).find(f => f.name === name) ?? null; }
 
     private base<T extends DF>(_: T) { return (_.parent = this, this.__sort(), _) }
-    public createFile(o: FileType) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
-    public createDir(o: DirecoryType) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
+    public createFile(o: FileType) { let f = new File(o); return (this.data.add(f), this.base(f)); }
+    public createDir(o: DirecoryType) { let d = new Directory(o); return (this.data.add(d), this.base(d)); }
 
-    public add(o: DF) { return this.data.set(o.name, o), this.base(o); }
+    public add(o: DF) { return this.data.add(o), this.base(o); }
 
     public getHierarchy(o?: HierarchyType, ___tab: string = "") {
         let str = this.getHierarchyString("+", o, ___tab);
@@ -104,16 +103,15 @@ export class Directory extends Base {
     }
 
     private __sort() {
-        this.data = new Map(
-            Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1)
-            // .map(f => (f[1].data, f))
+        this.data = new Set(
+            Array.from(this.data).sort((a, b) => a.type == "directory" ? -1 : 1)
         );
     }
 }
 
 type FileType = { data?: string } & BaseType;
 export class File extends Base {
-    public type: "file" = "file";
+    public type = "file" as const;
     public data: string;
     public constructor(o: FileType) {
         super(o);
