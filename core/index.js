@@ -25,6 +25,8 @@ class Base {
         if (newName.match(/^[\\/:*?"<>|]+$/g))
             throw Error(`The file name "${newName}" is not allowed!`);
         let oldName = this.name;
+        if (this.parent?.data.has(newName))
+            throw Error(`A file named "${newName}" already exists`);
         this.name = newName;
         this.parent?.data.delete(oldName);
         this.parent?.add(this);

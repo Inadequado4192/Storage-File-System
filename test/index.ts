@@ -31,9 +31,14 @@ let assets = Array.from(mainDir.data)[0][1] as Directory;
 let scripts = Array.from(assets.data)[0][1] as Directory;
 // assets.move(scripts);
 
-assets.rename("NN");
-let nf = new File({ name: "NN" });
-mainDir.add(nf);
+try {
+    
+assets.rename("README.md");
+} catch (error) {
+    
+}
+// let nf = new File({ name: "NN" });
+// mainDir.add(nf);
 
 console.log(mainDir);
 console.log(mainDir.getHierarchy({ size: true, text: 5 }));

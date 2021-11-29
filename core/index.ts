@@ -32,8 +32,11 @@ abstract class Base {
         else return this.parent?.findParentDir(a) ?? null;
     }
     public rename(newName: string) {
-        if (newName.match(/^[\\/:*?"<>|]+$/g)) throw Error(`The file name "${newName}" is not allowed!`)
+        if (newName.match(/^[\\/:*?"<>|]+$/g)) throw Error(`The file name "${newName}" is not allowed!`);
         let oldName = this.name;
+        
+        if (this.parent?.data.has(newName)) throw Error(`A file named "${newName}" already exists`);
+        
         (<any>this).name = newName;
         this.parent?.data.delete(oldName);
         this.parent?.add(this as DF);
