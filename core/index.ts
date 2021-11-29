@@ -120,7 +120,7 @@ export class Directory extends Base {
 
     public __sort() {
         this.data = new Map(
-            Array.from(this.data).sort().sort((a, b) => a[1].type == "directory" ? -1 : 1)
+            Array.from(this.data).sort((a, b) => a[1].type == "directory" ? -1 : 1)
         );
     }
 }
