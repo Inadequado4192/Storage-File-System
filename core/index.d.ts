@@ -34,7 +34,7 @@ export declare class Directory extends Base {
     private base;
     createFile(o: FileType): File;
     createDir(o: DirecoryType): Directory;
-    add(o: DF): DF;
+    add(o: DF): Map<string, DF>;
     getHierarchy(o?: HierarchyType, ___tab?: string): string;
     download(): void;
     __getJSZip(dir: any): any;

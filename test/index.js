@@ -27,6 +27,9 @@ let mainDir = new Directory({
 let assets = Array.from(mainDir.data)[0][1];
 let scripts = Array.from(assets.data)[0][1];
 assets.rename("NN");
+let nf = new File({ name: "m" });
+mainDir.add(nf);
+nf.rename("NN");
 console.log(mainDir);
 console.log(mainDir.getHierarchy({ size: true, text: 5 }));
 mainDir.download();

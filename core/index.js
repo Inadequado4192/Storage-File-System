@@ -27,7 +27,7 @@ class Base {
         let oldName = this.name;
         this.name = newName;
         this.parent?.data.delete(oldName);
-        this.parent?.data.set(newName, this);
+        this.parent?.add(this);
         this.parent?.__sort();
     }
 }
@@ -47,12 +47,22 @@ export class Directory extends Base {
     get(name) { return Array.from(this.data).find(f => f[1].name === name) ?? null; }
     base(_) {
         if (this.data.has(_.name))
-            throw Error("A file with this name already exists");
+            throw Error(`A file named "${_.name}" already exists`);
         return (_.parent = this, this.__sort(), _);
     }
-    createFile(o) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
-    createDir(o) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
-    add(o) { return this.data.set(o.name, o), this.base(o); }
+    createFile(o) {
+        let f = new File(o);
+        this.base(f);
+        this.data.set(f.name, f);
+        return f;
+    }
+    createDir(o) {
+        let d = new Directory(o);
+        this.base(d);
+        this.data.set(d.name, d);
+        return d;
+    }
+    add(o) { return this.base(o), this.data.set(o.name, o); }
     getHierarchy(o, ___tab = "") {
         let str = this.getHierarchyString("+", o, ___tab);
         this.data.forEach(f => str += "|" + f.getHierarchy(o, ___tab + "   "));

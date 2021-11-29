@@ -36,7 +36,7 @@ abstract class Base {
         let oldName = this.name;
         (<any>this).name = newName;
         this.parent?.data.delete(oldName);
-        this.parent?.data.set(newName, this as DF);
+        this.parent?.add(this as DF);
         this.parent?.__sort();
     }
 
@@ -75,10 +75,20 @@ export class Directory extends Base {
         if (this.data.has(_.name)) throw Error(`A file named "${_.name}" already exists`);
         return (_.parent = this, this.__sort(), _)
     }
-    public createFile(o: FileType) { let f = new File(o); return (this.data.set(f.name, f), this.base(f)); }
-    public createDir(o: DirecoryType) { let d = new Directory(o); return (this.data.set(d.name, d), this.base(d)); }
+    public createFile(o: FileType) {
+        let f = new File(o);
+        this.base(f);
+        this.data.set(f.name, f);
+        return f;
+    }
+    public createDir(o: DirecoryType) {
+        let d = new Directory(o);
+        this.base(d);
+        this.data.set(d.name, d);
+        return d;
+    }
 
-    public add(o: DF) { return this.data.set(o.name, o), this.base(o); }
+    public add(o: DF) { return this.base(o), this.data.set(o.name, o); }
 
     public getHierarchy(o?: HierarchyType, ___tab: string = "") {
         let str = this.getHierarchyString("+", o, ___tab);
