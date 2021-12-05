@@ -1,56 +1,57 @@
-declare type BaseType = {
+declare type DF = Directory | File;
+declare type _Map = Map<string, DF>;
+declare type BaseConstructor = {
     name: string;
 };
-declare abstract class Base {
-    readonly name: string;
-    parent: Directory | null;
-    constructor(o: BaseType);
-    get format(): string | null;
-    abstract type: "directory" | "file";
-    abstract data: string | Map<string, DF>;
-    abstract get size(): number;
-    abstract __getJSZip(dir: any): any;
-    abstract getHierarchy(o?: HierarchyType, ___tab?: string): string;
-    protected getHierarchyString(char?: string, o?: HierarchyType, ___tab?: string): string;
-    delete(): void;
-    findParentDir(a: string | Directory): Directory | null;
-    rename(newName: string): void;
-    abstract move(dir: Directory): void;
-}
-declare type DF = Directory | File;
+declare type DirectoryData = _Map;
+declare type DirectoryConstructor = {
+    data?: DF[] | DirectoryData;
+};
+declare type FileData = Blob;
+declare type FileConstructor = {
+    data?: FileData | string;
+};
 declare type HierarchyType = {
     size?: boolean;
     text?: number;
 };
-declare type DirecoryType = {
-    data?: DF[] | Map<string, DF>;
-} & BaseType;
+declare abstract class Base {
+    private __name;
+    get name(): string;
+    createdAt: Date;
+    parent: Directory | null;
+    readonly type: "directory" | "file";
+    constructor(o: BaseConstructor);
+    abstract data: FileData | DirectoryData;
+    abstract get size(): number;
+    rename(this: DF, newName: string): void;
+    findParent(this: DF, a: string | Directory): Directory | null;
+    delete(this: DF): void;
+    moveTo(this: DF, dir: Directory): void;
+    download(this: DF): Promise<void>;
+    path(this: DF, char?: string): string;
+}
 export declare class Directory extends Base {
-    type: "directory";
-    data: Map<string, DF>;
-    constructor(o: DirecoryType);
+    readonly type: "directory";
+    readonly data: DirectoryData;
+    constructor(o: (DirectoryConstructor & BaseConstructor));
     get size(): number;
-    get(name: string): [string, DF] | null;
-    private base;
-    createFile(o: FileType): File;
-    createDir(o: DirecoryType): Directory;
-    add(o: DF): Map<string, DF>;
-    getHierarchy(o?: HierarchyType, ___tab?: string): string;
-    download(): void;
-    __getJSZip(dir: any): any;
-    move(dir: Directory): void;
-    __sort(): void;
+    add(o: DF | DF[] | _Map): void;
+    getHierarchy(O?: HierarchyType): string;
+    forEach(callbackfn: (df: DF, type: string) => void): void;
+    find(name: string, fn?: (df: DF) => boolean): DF | null;
+    addByPath(path: string, data: Required<(DirectoryConstructor | FileConstructor)>["data"]): void;
 }
-declare type FileType = {
-    data?: string;
-} & BaseType;
 export declare class File extends Base {
-    type: "file";
-    data: string;
-    constructor(o: FileType);
+    readonly type: "file";
+    private __data;
+    get data(): Blob;
+    set data(v: Blob);
+    _text: string;
+    get text(): string;
+    constructor(o: (FileConstructor & BaseConstructor) | globalThis.File);
+    get format(): string | null;
     get size(): number;
-    getHierarchy(o?: HierarchyType, ___tab?: string): string;
-    __getJSZip(dir: any): any;
-    move(dir: Directory): void;
 }
+export declare function readZip(file: globalThis.File): Promise<Directory>;
 export {};

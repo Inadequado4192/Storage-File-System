@@ -1,3 +1,6 @@
 node_modules
 js/build.js
 js/build.js.LICENSE.txt
+test/index.d.ts
+test/build.js
+test/build.js.LICENSE.txt

@@ -1,1 +1,1 @@
-declare module 'jszip/dist/jszip.js';
+declare module "jszip/dist/jszip.js";

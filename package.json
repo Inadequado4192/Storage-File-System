@@ -1,22 +1,18 @@
 {
   "name": "storage-file-system",
-  "version": "0.4.7",
+  "version": "0.5.0",
   "description": "",
   "main": "./core/index.js",
   "types": "./core/index.d.ts",
-  "type": "module",
   "scripts": {
     "git_remote": "git remote add origin https://github.com/Inadequado4192/Storage-File-System.git",
-    "save": "git add . && git commit -m \"storage-file-system\" && git branch -M main && git push -u origin main --force && npm publish",
-    "test": "tsc && node ./test/index.js"
+    "save": "tsc && git add . && git commit -m \"storage-file-system\" && git branch -M main && git push -u origin main --force && npm publish",
+    "test": "tsc && webpack"
   },
   "author": "Inadequado",
   "license": "MIT",
   "dependencies": {
-    "@types/jszip": "^3.4.1",
-    "@types/node": "^16.11.10",
-    "jszip": "^3.7.1",
-    "storage-file-system": "^0.4.2"
+    "jszip": "^3.7.1"
   },
   "homepage": "https://github.com/Inadequado4192/Storage-File-System#readme"
 }
