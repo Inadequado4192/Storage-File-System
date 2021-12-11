@@ -47,11 +47,12 @@ export declare class File extends Base {
     private __data;
     get data(): Blob;
     set data(v: Blob);
-    _text: string;
+    private _text;
     get text(): string;
     constructor(o: (FileConstructor & BaseConstructor) | globalThis.File);
     get format(): string | null;
     get size(): number;
+    getBase64(): Promise<string>;
 }
 export declare function readZip(file: globalThis.File): Promise<Directory>;
 export {};

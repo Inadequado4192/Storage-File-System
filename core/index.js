@@ -171,8 +171,17 @@ export class File extends Base {
         super(o);
         this.type = "file";
         this._text = "";
-        o instanceof window.File && (o = { name: o.name, data: o });
-        this.data = o.data instanceof Blob ? o.data : new Blob([o.data ?? ""], { type: "text/plain" });
+        if (o instanceof window.File) {
+            this.data = new Blob([o], { type: o.type });
+        }
+        else {
+            if (o.data instanceof Blob) {
+                this.data = o.data;
+            }
+            else {
+                this.data = new Blob([o.data ?? ""], { type: "text/plain" });
+            }
+        }
     }
     get data() { return this.__data; }
     set data(v) {
@@ -183,6 +192,13 @@ export class File extends Base {
     get format() { return this.name.search(/\./) > -1 ? this.name.match(/[^\.]+?$/g)?.[0] ?? null : null; }
     get size() {
         return this.data.size;
+    }
+    getBase64() {
+        return new Promise(_ => {
+            let r = new FileReader();
+            r.readAsDataURL(this.data);
+            r.onload = () => _(r.result);
+        });
     }
 }
 export function readZip(file) {
@@ -196,6 +212,7 @@ export function readZip(file) {
             const dir = new Directory({ name: file.name.replace(/\.zip$/, "") });
             for (let path in res.files) {
                 let f = res.files[path];
+                console.log(f.name, f._dataBinary);
                 if (!f.dir)
                     dir.addByPath(path, new Blob([f._data.compressedContent ?? ""]));
             }

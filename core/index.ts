@@ -308,6 +308,7 @@ export class Directory extends Base {
 
 export class File extends Base {
     public readonly type = "file" as const;
+
     private __data!: FileData;
     /** Just `blob` ^^ */
     public get data() { return this.__data; }
@@ -315,19 +316,27 @@ export class File extends Base {
         this.__data = v;
         v.text().then(t => this._text = t);
     }
+    private _text: string = "";
     /** The text contained in `blob.text()` (`this.data`). Automatically updated when `this.data` changes.
      * 
      * **WARNING: Since getting text from `blob.text()` is asynchronous, assigning text to `this.text` is also asynchronous.**
      */
-    public _text: string = "";
     public get text() { return this._text; }
+
 
     constructor(o: (FileConstructor & BaseConstructor) | globalThis.File) {
         super(o);
 
-        o instanceof window.File && (o = { name: o.name, data: o });
 
-        this.data = o.data instanceof Blob ? o.data : new Blob([o.data ?? ""], { type: "text/plain" });
+        if (o instanceof window.File) {
+            this.data = new Blob([o], { type: o.type })
+        } else {
+            if (o.data instanceof Blob) {
+                this.data = o.data;
+            } else {
+                this.data = new Blob([o.data ?? ""], { type: "text/plain" });
+            }
+        }
     }
 
     /** Returns the file format */
@@ -335,9 +344,17 @@ export class File extends Base {
 
 
     public get size() {
-        return this.data.size;//lengthInUtf8Bytes(this.data);
+        return this.data.size;
     }
 
+    /** Get data as **base64** */
+    public getBase64() {
+        return new Promise<string>(_ => {
+            let r = new FileReader();
+            r.readAsDataURL(this.data);
+            r.onload = () => _(r.result as string);
+        })
+    }
 }
 
 export function readZip(file: globalThis.File) {
@@ -351,6 +368,7 @@ export function readZip(file: globalThis.File) {
 
             for (let path in res.files) {
                 let f = res.files[path];
+                console.log(f.name, f._dataBinary);
                 if (!f.dir) dir.addByPath(path, new Blob([f._data.compressedContent ?? ""]));
             }
             resolve(dir);
